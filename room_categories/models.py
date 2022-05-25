@@ -8,10 +8,3 @@ class RoomCategory(models.Model):
     category_name = models.CharField(max_length=150, unique=True, null=False)
     price = models.DecimalField(max_digits=10, decimal_places=2, null=False)
     max_guest_number = models.IntegerField(null=False)
-
-    reservations = models.ForeignKey(
-        "reservations.Reservation",
-        on_delete=models.CASCADE,
-        related_name="room_category",
-        null=False,
-    )
