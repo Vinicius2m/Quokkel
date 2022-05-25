@@ -14,6 +14,7 @@ class User(AbstractUser):
     cpf = models.charField(unique=True, null=False, max_length=11)
     phone = models.CharField(unique=True, max_length=15)
     is_staff = models.BooleanField(default=False)
+    username = models.charField(unique=False, blank=True, null=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
