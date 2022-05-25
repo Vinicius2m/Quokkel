@@ -49,7 +49,11 @@ THIRD_APPS = [
 ]
 
 MY_APPS = [
-
+    "admin",
+    "guests",
+    "reservations",
+    "rooms",
+    "rooms_categories",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_APPS + MY_APPS
