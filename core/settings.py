@@ -49,11 +49,10 @@ THIRD_APPS = [
 ]
 
 MY_APPS = [
-    "admin",
-    "guests",
+    "users",
     "reservations",
     "rooms",
-    "rooms_categories",
+    "room_categories",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_APPS + MY_APPS
@@ -155,6 +154,6 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# AUTH_USER_MODEL = 
+AUTH_USER_MODEL = "users.User"
 
 CORS_ORIGIN_ALLOW_ALL = True
