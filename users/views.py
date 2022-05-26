@@ -13,23 +13,21 @@ from users.serializers import AdminSerializer, GuestsSerializer, LoginSerializer
 class AdminView(APIView):
     def post(self, request):
 
-        serializer = UsersSerializer(data=request.data)
+        serializer = AdminSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         found_user = User.objects.filter(
             email=serializer.validated_data["email"]
-        ).first()
+        ).exists()
 
         if found_user:
-            return Response(
-                {"error": "User already exists"}, status.HTTP_422_UNPROCESSABLE_ENTITY
-            )
+            return Response({"error": "Admin already exists"}, status.HTTP_409_CONFLICT)
 
         user: User = User.objects.create(**serializer.validated_data)
         user.set_password(serializer.validated_data["password"])
         user.save()
 
-        serializer = UsersSerializer(user)
+        serializer = AdminSerializer(user)
 
         return Response(serializer.data, status.HTTP_201_CREATED)
 
@@ -45,9 +43,7 @@ class GuestsView(APIView):
         ).exists()
 
         if found_guest:
-            return Response(
-                {"error": "Guest already exists"}, status.HTTP_409_CONFLICT
-            )
+            return Response({"error": "Guest already exists"}, status.HTTP_409_CONFLICT)
 
         guest: User = User.objects.create(**serializer.validated_data)
         guest.set_password(serializer.validated_data["password"])
