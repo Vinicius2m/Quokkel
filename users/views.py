@@ -1,10 +1,12 @@
-from django.shortcuts import render
+from django.contrib.auth import authenticate
+
 from rest_framework import status
-from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.authtoken.models import Token
 
 from users.models import User
-from users.serializers import AdminSerializer, GuestsSerializer
+from users.serializers import AdminSerializer, GuestsSerializer, LoginSerializer
 
 
 class AdminView(APIView):
@@ -49,3 +51,22 @@ class GuestsView(APIView):
         serializer = GuestsSerializer(guest)
 
         return Response(serializer.data, status.HTTP_201_CREATED)
+
+
+class UsersView(APIView):
+    def post(self, request):
+
+        serializer = LoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = authenticate(
+            username=serializer.validated_data["email"],
+            password=serializer.validated_data["password"],
+        )
+
+        if not user:
+            return Response({"error": "Invalid credentials."}, status.HTTP_401_UNAUTHORIZED)
+
+        token, _ = Token.objects.get_or_create(user=user)
+
+        return Response({"token": token.key}, status.HTTP_200_OK)
