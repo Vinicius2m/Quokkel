@@ -4,7 +4,7 @@ from rest_framework import serializers
 class RoomCategoriesSerializer(serializers.Serializer):
     room_category_id = serializers.UUIDField(read_only=True)
     category_name = serializers.CharField()
-    price = serializers.DecimalField()
+    price = serializers.DecimalField(max_digits=10, decimal_places=2)
     max_guest_number = serializers.IntegerField()
 
     number_of_rooms = serializers.IntegerField(read_only=True)
@@ -13,7 +13,7 @@ class RoomCategoriesSerializer(serializers.Serializer):
 class UpdateRoomCategoriesSerializer(serializers.Serializer):
     room_category_id = serializers.UUIDField(read_only=True)
     category_name = serializers.CharField(required=False)
-    price = serializers.DecimalField(required=False)
+    price = serializers.DecimalField(required=False, max_digits=10, decimal_places=2)
     max_guest_number = serializers.IntegerField(required=True)
 
     number_of_rooms = serializers.IntegerField(read_only=True)
