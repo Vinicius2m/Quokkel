@@ -14,6 +14,6 @@ class UpdateRoomCategoriesSerializer(serializers.Serializer):
     room_category_id = serializers.UUIDField(read_only=True)
     category_name = serializers.CharField(required=False)
     price = serializers.DecimalField(required=False, max_digits=10, decimal_places=2)
-    max_guest_number = serializers.IntegerField(required=True)
+    max_guest_number = serializers.IntegerField(required=False)
 
     number_of_rooms = serializers.IntegerField(read_only=True)
