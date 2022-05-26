@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from users.models import User
-from users.serializers import UsersSerializer
+from users.serializers import AdminSerializer, GuestsSerializer
 
 
 class AdminView(APIView):
@@ -29,3 +29,29 @@ class AdminView(APIView):
         serializer = UsersSerializer(user)
 
         return Response(serializer.data, status.HTTP_201_CREATED)
+
+
+class GuestsView(APIView):
+    def post(self, request):
+
+        serializer = GuestsSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        found_guest = User.objects.filter(
+            email=serializer.validated_data["email"]
+        ).exists()
+
+        if found_guest:
+            return Response(
+                {"error": "Guest already exists"}, status.HTTP_409_CONFLICT
+            )
+
+        guest: User = User.objects.create(**serializer.validated_data)
+        guest.set_password(serializer.validated_data["password"])
+        guest.save()
+
+        serializer = GuestsSerializer(guest)
+
+        return Response(serializer.data, status.HTTP_201_CREATED)
+
+
