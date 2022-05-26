@@ -10,7 +10,7 @@ class Reservation(models.Model):
     checkin_date = models.DateField(null=True)
     checkout_date = models.DateField(null=True)
     status = models.CharField(max_length=50)
-    total_value = models.DecimalField(max_digits=10, decimal_places=2)
+    total_value = models.DecimalField(max_digits=10, decimal_places=2, null=True)
 
     guest = models.ForeignKey(
         "users.User", on_delete=models.CASCADE, related_name="reservations"
