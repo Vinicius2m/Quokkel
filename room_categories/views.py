@@ -36,4 +36,21 @@ class RoomCategoriesView(APIView):
             status=HTTP_400_BAD_REQUEST
         )
     
-    
+    def get(self, request: Request, room_category_id: str=None):
+
+        if room_category_id:
+            room_category = RoomCategory.objects.filter(room_category_id=room_category_id).first()
+            serializer = RoomCategoriesSerializer(room_category)
+            return Response(
+            serializer.data,
+            status=HTTP_200_OK
+        )
+
+        rooms_category = RoomCategory.objects.all()
+        
+        serializer = RoomCategoriesSerializer(rooms_category, many=True)
+
+        return Response(
+            serializer.data,
+            status=HTTP_200_OK
+        )
