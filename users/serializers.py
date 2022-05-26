@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 class UserSerializer(serializers.Serializer):
 
-    user_id = serializers.CharField(read_only=True)
+    user_id = serializers.UUIDField(read_only=True)
     email = serializers.EmailField(required=True)
     password = serializers.CharField(required=True, write_only=True)
     first_name = serializers.CharField(required=True)
