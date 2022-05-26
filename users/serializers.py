@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 
-class UserSerializer(serializers.Serializer):
+class UsersSerializer(serializers.Serializer):
 
     user_id = serializers.UUIDField(read_only=True)
     email = serializers.EmailField(required=True)
