@@ -3,7 +3,8 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.status import (HTTP_200_OK, HTTP_201_CREATED,
                                    HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND,
-                                   HTTP_422_UNPROCESSABLE_ENTITY)
+                                   HTTP_422_UNPROCESSABLE_ENTITY,
+                                   HTTP_204_NO_CONTENT)
 from rest_framework.views import APIView
 
 from .models import RoomCategory
@@ -73,3 +74,17 @@ class RoomCategoriesView(APIView):
 
         except IntegrityError as error:
             return Response({"error": str(error)}, status=HTTP_422_UNPROCESSABLE_ENTITY)
+
+    def delete(self, request: Request, room_category_id: str):
+        room_category = RoomCategory.objects.filter(
+            room_category_id=room_category_id
+        )
+
+        if not room_category:
+            return Response(
+                {"error": "Room category does not exist"}, HTTP_404_NOT_FOUND
+            )
+
+        room_category.delete()
+
+        return Response(status=HTTP_204_NO_CONTENT)
