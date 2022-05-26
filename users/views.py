@@ -1,5 +1,4 @@
-from django.shortcuts import render
-from django.contrib.auth.hashers import check_password
+from django.contrib.auth import authenticate
 
 from rest_framework import status
 from rest_framework.views import APIView
@@ -60,14 +59,13 @@ class UsersView(APIView):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        user: User = User.objects.filter(
-            email=serializer.validated_data["email"]
-        ).first()
+        user = authenticate(
+            username=serializer.validated_data["email"],
+            password=serializer.validated_data["password"],
+        )
 
-        if not check_password(serializer.validated_data["password"], user.password):
-            return Response(
-                {"error": "Invalid credentials."}, status.HTTP_401_UNAUTHORIZED
-            )
+        if not user:
+            return Response({"error": "Invalid credentials."}, status.HTTP_401_UNAUTHORIZED)
 
         token, _ = Token.objects.get_or_create(user=user)
 
