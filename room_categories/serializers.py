@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 
-class RoomCategorySerializer(serializers.Serializer):
+class RoomCategoriesSerializer(serializers.Serializer):
     room_category_id = serializers.UUIDField(read_only=True)
     category_name = serializers.CharField()
     price = serializers.DecimalField()
@@ -10,7 +10,7 @@ class RoomCategorySerializer(serializers.Serializer):
     number_of_rooms = serializers.IntegerField(read_only=True)
 
 
-class UpdateRoomCategorySerializer(serializers.Serializer):
+class UpdateRoomCategoriesSerializer(serializers.Serializer):
     room_category_id = serializers.UUIDField(read_only=True)
     category_name = serializers.CharField(null=True)
     price = serializers.DecimalField(null=True)
