@@ -5,11 +5,12 @@ from django.db import models
 
 class Reservation(models.Model):
     reservation_id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    in_reservation = models.DateField()
-    out_reservation = models.DateField()
-    checkin_date = models.DateField()
-    checkout_date = models.DateField()
+    in_reservation_date = models.DateField()
+    out_reservation_date = models.DateField()
+    checkin_date = models.DateField(null=True)
+    checkout_date = models.DateField(null=True)
     status = models.CharField(max_length=50)
+    total_value = models.DecimalField(max_digits=10, decimal_places=2)
 
     guest = models.ForeignKey(
         "users.User", on_delete=models.CASCADE, related_name="reservations"
