@@ -1,11 +1,12 @@
 from rest_framework import serializers
 
+from room_categories.models import RoomCategory
 from room_categories.serializers import RoomCategoriesSerializer
 
+from .models import Room
 
-class RoomsSerializer(serializers.Serializer):
-    room_id = serializers.UUIDField(read_only=True)
-    number = serializers.IntegerField(required=True)
-    available = serializers.BooleanField()
 
-    room_category = RoomCategoriesSerializer(many=False, required=False)
+class RoomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Room
+        fields = ("room_id", "number", "available", "room_category")

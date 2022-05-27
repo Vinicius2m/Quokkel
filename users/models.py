@@ -12,7 +12,7 @@ class User(AbstractUser):
     last_name = models.CharField(unique=False, null=False, max_length=50)
     age = models.IntegerField(null=False)
     cpf = models.CharField(unique=True, null=False, max_length=11)
-    phone = models.CharField(unique=True, max_length=15)
+    phone = models.CharField(unique=True, max_length=13)
     is_staff = models.BooleanField(default=False)
     username = models.CharField(unique=False, blank=True, null=True, max_length=50)
 
