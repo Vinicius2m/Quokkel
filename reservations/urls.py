@@ -5,7 +5,8 @@ from reservations.views import (
     ReservationsView,
     RetrieveReservationsView,
     UpdateReservationsView,
-    CheckinReservationsView
+    CheckinReservationsView,
+    CheckoutReservationsView
 )
 
 urlpatterns = [
@@ -18,5 +19,6 @@ urlpatterns = [
         RetrieveReservationsView.as_view(),
     ),
     path("reservations/<str:reservation_id>/", UpdateReservationsView.as_view()),
-    path("reservations/<str:reservation_id>/checkin/", CheckinReservationsView.as_view())
+    path("reservations/<str:reservation_id>/checkin/", CheckinReservationsView.as_view()),
+    path("reservations/<str:reservation_id>/checkout/", CheckoutReservationsView.as_view())
 ]
