@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
+    HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
     HTTP_404_NOT_FOUND,
     HTTP_409_CONFLICT,
@@ -90,6 +91,25 @@ class ReservationsView(APIView):
             serializer = ReservationsDataSerializer(reservations, many=True)
 
         return Response(serializer.data, status=HTTP_200_OK)
+
+
+class DeleteReservationView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsStaff]
+
+    def delete(self, _: Request, reservation_id: str):
+        if not reservation_id:
+            return Response(
+                {"error": "Reservation does not exist"}, status=HTTP_404_NOT_FOUND
+            )
+
+        try:
+            reservation = Reservation.objects.get(reservation_id=reservation_id)
+            reservation.delete()
+
+            return Response(status=HTTP_204_NO_CONTENT)
+        except Reservation.DoesNotExist:
+            return Response(status=HTTP_404_NOT_FOUND)
 
 
 class RetrieveReservationsView(APIView):
