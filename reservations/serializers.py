@@ -8,8 +8,6 @@ class ReservationsSerializer(serializers.Serializer):
     reservation_id = serializers.UUIDField(read_only=True)
     in_reservation_date = serializers.DateField(required=True)
     out_reservation_date = serializers.DateField(required=True)
-    checkin_date = serializers.DateField(required=False)
-    checkout_date = serializers.DateField(required=False)
     status = serializers.CharField(required=True)
     total_value = serializers.DecimalField(
         required=False, max_digits=10, decimal_places=2
@@ -29,6 +27,19 @@ class ReservationsDataSerializer(serializers.Serializer):
     )
     guest_id = (GuestsSerializer(),)
     room_category_id = (RoomCategoriesSerializer(),)
+
+
+class RetreiveReservationsSerializer(serializers.Serializer):
+    reservation_id = serializers.UUIDField(read_only=True)
+    in_reservation_date = serializers.DateField(required=True)
+    out_reservation_date = serializers.DateField(required=True)
+    checkin_date = serializers.DateField(required=False)
+    checkout_date = serializers.DateField(required=False)
+    status = serializers.CharField(required=True)
+    total_value = serializers.DecimalField(
+        required=False, max_digits=10, decimal_places=2
+    )
+    guest = GuestsSerializer()
 
 
 class CheckinReservationSerializer(serializers.Serializer):
