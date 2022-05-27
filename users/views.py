@@ -1,6 +1,7 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
 from django.db import IntegrityError
+from django.core.exceptions import ValidationError
 
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
@@ -140,6 +141,17 @@ class GuestsView(APIView):
         except IntegrityError as error:
             if "unique" in str(error).lower():
                 return Response({"error": "Email already exists."}, status.HTTP_409_CONFLICT)
+
+    def delete(self, _, guest_id):
+
+        try:
+            guest: User = User.objects.filter(user_id=guest_id)
+            guest.delete()
+
+            return Response("", status.HTTP_204_NO_CONTENT)
+
+        except ValidationError as error:
+            return Response({"error": error}, status.HTTP_400_BAD_REQUEST)
 
 
 class UsersView(APIView):
