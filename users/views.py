@@ -114,20 +114,24 @@ class GuestsView(APIView):
         serializer = GuestsSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        found_guest = User.objects.filter(
-            email=serializer.validated_data["email"]
-        ).exists()
+        try:
+            found_guest = User.objects.filter(
+                email=serializer.validated_data["email"]
+            ).exists()
 
-        if found_guest:
-            return Response({"error": "Guest already exists"}, status.HTTP_409_CONFLICT)
+            if found_guest:
+                return Response({"error": "Guest already exists"}, status.HTTP_409_CONFLICT)
 
-        guest: User = User.objects.create(**serializer.validated_data)
-        guest.set_password(serializer.validated_data["password"])
-        guest.save()
+            guest: User = User.objects.create(**serializer.validated_data)
+            guest.set_password(serializer.validated_data["password"])
+            guest.save()
 
-        serializer = GuestsSerializer(guest)
+            serializer = GuestsSerializer(guest)
 
-        return Response(serializer.data, status.HTTP_201_CREATED)
+            return Response(serializer.data, status.HTTP_201_CREATED)
+        
+        except IntegrityError as error:
+            return Response({"error": str(error)}, status.HTTP_409_CONFLICT)
 
     def patch(self, request, guest_id):
 
