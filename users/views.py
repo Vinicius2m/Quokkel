@@ -1,11 +1,8 @@
-from ast import Is
-from urllib import request
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
 from django.db import IntegrityError
 
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
@@ -97,7 +94,7 @@ class AdminView(APIView):
 
 
 class GuestsView(APIView):
-    
+
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsGuest]
 
