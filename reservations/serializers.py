@@ -8,7 +8,10 @@ class ReservationsSerializer(serializers.Serializer):
     checkin_date = serializers.DateField(required=False)
     checkout_date = serializers.DateField(required=False)
     status = serializers.CharField(required=True)
-    total_value = serializers.DecimalField(required=False)
+    total_value = serializers.DecimalField(
+        required=False, max_digits=10, decimal_places=2
+    )
+    guest_email = serializers.EmailField(required=True, write_only=True)
 
 
 class CheckinReservationSerializer(serializers.Serializer):
@@ -24,4 +27,6 @@ class UpdateReservationsSerializer(serializers.Serializer):
     in_reservation_date = serializers.DateField(required=False)
     out_reservation_date = serializers.DateField(required=False)
     status = serializers.CharField(required=False)
-    total_value = serializers.DecimalField(required=False)
+    total_value = serializers.DecimalField(
+        required=False, max_digits=10, decimal_places=2
+    )
