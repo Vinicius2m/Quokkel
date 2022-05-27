@@ -1,8 +1,7 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
-from django.db import IntegrityError
 from django.core.exceptions import ValidationError
-
+from django.db import IntegrityError
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
@@ -10,9 +9,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from users.models import User
-from users.permissions import IsStaff, IsGuest
-from users.serializers import (AdminSerializer, GuestsSerializer,
-                               LoginSerializer)
+from users.permissions import IsGuest, IsStaff
+from users.serializers import AdminSerializer, GuestsSerializer, LoginSerializer
 
 
 class AdminView(APIView):
@@ -40,20 +38,32 @@ class AdminView(APIView):
 
         return Response(serializer.data, status.HTTP_201_CREATED)
 
-    def get(self, _, admin_id=None):
+    def get(self, _, user_id=None):
 
-        if not admin_id:
-            users = User.objects.all()
-            serializer = AdminSerializer(users, many=True)
+        path = self.request.get_full_path()
+
+        if user_id:
+            user = User.objects.filter(user_id=user_id).first()
+
+            if not user:
+                return Response({"error": "User not found"}, status.HTTP_404_NOT_FOUND)
+
+            serializer = AdminSerializer(user)
+
             return Response(serializer.data, status.HTTP_200_OK)
 
-        user = User.objects.filter(user_id=admin_id)
+        if "guests" not in path and "admins" not in path:
+            users = users = User.objects.all()
+            serializer = AdminSerializer(users, many=True)
 
-        if not user.exists():
-            return Response({"error": "Admin not found"}, status.HTTP_404_NOT_FOUND)
+            return Response(serializer.data, status.HTTP_200_OK)
 
-        serializer = AdminSerializer(user.first())
+        users = User.objects.filter(is_staff=False).all()
 
+        if "admins" in path:
+            users = User.objects.filter(is_staff=True).all()
+
+        serializer = AdminSerializer(users, many=True)
         return Response(serializer.data, status.HTTP_200_OK)
 
     def patch(self, request, admin_id):
@@ -141,10 +151,12 @@ class GuestsView(APIView):
             serializer = GuestsSerializer(guest)
 
             return Response(serializer.data, status.HTTP_200_OK)
-        
+
         except IntegrityError as error:
             if "unique" in str(error).lower():
-                return Response({"error": "Email already exists."}, status.HTTP_409_CONFLICT)
+                return Response(
+                    {"error": "Email already exists."}, status.HTTP_409_CONFLICT
+                )
 
     def delete(self, _, guest_id):
 
