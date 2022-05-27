@@ -1,7 +1,8 @@
 from django.core.exceptions import BadRequest
-from django.forms import ValidationError
 from django.db import IntegrityError
+from django.forms import ValidationError
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.status import (
@@ -25,6 +26,9 @@ from users.permissions import IsStaff
 
 
 class ReservationsView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def post(self, request: Request, room_category_id: str = ""):
         serializer = ReservationsSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -70,7 +74,6 @@ class ReservationsView(APIView):
         except BadRequest as error:
             return Response({"error": str(error)}, status=HTTP_400_BAD_REQUEST)
 
-
     def get(self, _: Request, guest_id: str = None):
         if not guest_id:
             reservations = list(Reservation.objects.all())
@@ -85,12 +88,12 @@ class ReservationsView(APIView):
             reservations = Reservation.objects.filter(guest_id=guest_id)
 
             serializer = ReservationsDataSerializer(reservations, many=True)
-        
+
         return Response(serializer.data, status=HTTP_200_OK)
 
-class RetreiveReservationsView(APIView):
+
+class RetrieveReservationsView(APIView):
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsStaff]
 
     def get(self, _: Request, reservation_id: str):
         reservation = Reservation.objects.filter(reservation_id=reservation_id).first()
