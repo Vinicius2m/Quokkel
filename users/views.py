@@ -1,5 +1,7 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
+from django.db import IntegrityError
+
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
@@ -7,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from users.models import User
-from users.permissions import IsStaff
+from users.permissions import IsStaff, IsGuest
 from users.serializers import (AdminSerializer, GuestsSerializer,
                                LoginSerializer)
 
@@ -92,6 +94,10 @@ class AdminView(APIView):
 
 
 class GuestsView(APIView):
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsGuest]
+
     def post(self, request):
 
         serializer = GuestsSerializer(data=request.data)
@@ -111,6 +117,29 @@ class GuestsView(APIView):
         serializer = GuestsSerializer(guest)
 
         return Response(serializer.data, status.HTTP_201_CREATED)
+
+    def patch(self, request, guest_id):
+
+        serializer = GuestsSerializer(data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            guest: User = User.objects.filter(user_id=guest_id)
+            guest.update(**serializer.validated_data)
+
+            guest: User = guest.first()
+
+            if serializer.validated_data.get("password"):
+                guest.set_password(serializer.validated_data.get("password"))
+                guest.save()
+
+            serializer = GuestsSerializer(guest)
+
+            return Response(serializer.data, status.HTTP_200_OK)
+        
+        except IntegrityError as error:
+            if "unique" in str(error).lower():
+                return Response({"error": "Email already exists."}, status.HTTP_409_CONFLICT)
 
 
 class UsersView(APIView):

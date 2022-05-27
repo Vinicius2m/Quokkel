@@ -9,4 +9,5 @@ urlpatterns = [
     path("admin/login/", UsersView.as_view()),
     path("guests/register/", GuestsView.as_view()),
     path("guests/login/", UsersView.as_view()),
+    path("guests/<str:guest_id>", GuestsView.as_view())
 ]
