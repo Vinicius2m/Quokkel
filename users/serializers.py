@@ -10,7 +10,7 @@ class AdminSerializer(serializers.Serializer):
     last_name = serializers.CharField(required=True)
     age = serializers.IntegerField(required=True)
     cpf = serializers.CharField(required=True, min_length=11, max_length=11)
-    phone = serializers.CharField(required=True, min_length=15, max_length=15)
+    phone = serializers.CharField(required=True, min_length=11, max_length=13)
     is_staff = serializers.BooleanField(required=True)
 
 
@@ -23,7 +23,7 @@ class GuestsSerializer(serializers.Serializer):
     last_name = serializers.CharField(required=True)
     age = serializers.IntegerField(required=True)
     cpf = serializers.CharField(required=True, min_length=11, max_length=11)
-    phone = serializers.CharField(required=True, min_length=15, max_length=15)
+    phone = serializers.CharField(required=True, min_length=11, max_length=13)
 
 
 class LoginSerializer(serializers.Serializer):
