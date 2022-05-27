@@ -55,8 +55,6 @@ class ReservationsView(APIView):
             reservation_data = {
                 "in_reservation_date": request.data["in_reservation_date"],
                 "out_reservation_date": request.data["out_reservation_date"],
-                "checkin_date": request.data["checkin_date"],
-                "checkout_date": request.data["checkout_date"],
                 "status": request.data["status"],
                 "total_value": request.data["total_value"],
                 "guest_id": filtered_guest.__dict__["user_id"],
