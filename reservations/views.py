@@ -1,6 +1,7 @@
 from django.core.exceptions import BadRequest
 from django.db import IntegrityError
 from django.forms import ValidationError
+
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
@@ -21,6 +22,7 @@ from reservations.serializers import (
     ReservationsSerializer,
     RetreiveReservationsSerializer,
     UpdateReservationsSerializer,
+    CheckinReservationSerializer,
 )
 from users.models import User
 from users.permissions import IsStaff
@@ -153,3 +155,30 @@ class UpdateReservationsView(APIView):
         serializer = ReservationsDataSerializer(reservation)
 
         return Response(serializer.data, status=HTTP_200_OK)
+
+
+class CheckinReservationsView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsStaff]
+
+    def put(self, request: Request, reservation_id):
+
+        serializer = CheckinReservationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            reservation: Reservation = Reservation.objects.filter(reservation_id=reservation_id)
+
+            if not reservation:
+                return Response({"error": "Reservation not found"}, status=HTTP_404_NOT_FOUND)
+
+            reservation.update(**serializer.validated_data)
+
+            reservation: Reservation = reservation.first()
+
+            serializer = CheckinReservationSerializer(reservation)
+
+            return Response(serializer.data, status=HTTP_200_OK)
+
+        except ValidationError as error:
+            return Response({"error": error}, status=HTTP_400_BAD_REQUEST)
