@@ -1,14 +1,14 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
+from django.db import IntegrityError
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
-
 from rest_framework.views import APIView
 
 from users.models import User
-from users.permissions import IsStaff
+from users.permissions import IsGuest, IsStaff
 from users.serializers import AdminSerializer, GuestsSerializer, LoginSerializer
 
 
@@ -37,30 +37,32 @@ class AdminView(APIView):
 
         return Response(serializer.data, status.HTTP_201_CREATED)
 
-    def get(self, request, user_id=None):
+    def get(self, _, user_id=None):
 
-        path = request.get_full_path()
+        path = self.request.get_full_path()
 
-        if not user_id:
+        if user_id:
+            user = User.objects.filter(user_id=user_id).first()
 
-            users = User.objects.filter(is_staff=False).all()
+            if not user:
+                return Response({"error": "User not found"}, status.HTTP_404_NOT_FOUND)
 
-            if "admins" in path:
-                users = User.objects.filter(is_staff=True).all()
+            serializer = AdminSerializer(user)
 
-            serializer = AdminSerializer(users, many=True)
             return Response(serializer.data, status.HTTP_200_OK)
 
-        user = User.objects.filter(user_id=user_id, is_staff=False)
+        if "guests" not in path and "admins" not in path:
+            users = users = User.objects.all()
+            serializer = AdminSerializer(users, many=True)
+
+            return Response(serializer.data, status.HTTP_200_OK)
+
+        users = User.objects.filter(is_staff=False).all()
 
         if "admins" in path:
-            user = User.objects.filter(user_id=user_id, is_staff=True)
+            users = User.objects.filter(is_staff=True).all()
 
-        if not user.exists():
-            return Response({"error": "User not found"}, status.HTTP_404_NOT_FOUND)
-
-        serializer = AdminSerializer(user.first())
-
+        serializer = AdminSerializer(users, many=True)
         return Response(serializer.data, status.HTTP_200_OK)
 
     def patch(self, request, admin_id):
@@ -102,6 +104,10 @@ class AdminView(APIView):
 
 
 class GuestsView(APIView):
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsGuest]
+
     def post(self, request):
 
         serializer = GuestsSerializer(data=request.data)
@@ -121,6 +127,31 @@ class GuestsView(APIView):
         serializer = GuestsSerializer(guest)
 
         return Response(serializer.data, status.HTTP_201_CREATED)
+
+    def patch(self, request, guest_id):
+
+        serializer = GuestsSerializer(data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            guest: User = User.objects.filter(user_id=guest_id)
+            guest.update(**serializer.validated_data)
+
+            guest: User = guest.first()
+
+            if serializer.validated_data.get("password"):
+                guest.set_password(serializer.validated_data.get("password"))
+                guest.save()
+
+            serializer = GuestsSerializer(guest)
+
+            return Response(serializer.data, status.HTTP_200_OK)
+
+        except IntegrityError as error:
+            if "unique" in str(error).lower():
+                return Response(
+                    {"error": "Email already exists."}, status.HTTP_409_CONFLICT
+                )
 
 
 class UsersView(APIView):
