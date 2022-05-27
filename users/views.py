@@ -60,6 +60,20 @@ class AdminView(APIView):
 
         return Response(serializer.data, status.HTTP_200_OK)
 
+    def delete(self, _, admin_id):
+
+        user = User.objects.filter(user_id=admin_id)
+
+        if not user.exists():
+            return Response({"error": "User not found"}, status.HTTP_404_NOT_FOUND)
+
+        try:
+            user.delete()
+        except Exception as e:
+            return Response({"error": str(e)}, status.HTTP_400_BAD_REQUEST)
+
+        return Response("", status.HTTP_204_NO_CONTENT)
+
 
 class GuestsView(APIView):
     def post(self, request):

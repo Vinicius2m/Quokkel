@@ -3,7 +3,7 @@ from rest_framework.request import Request
 
 
 class IsStaff(BasePermission):
-    def has_permission(self, request: Request, view):
+    def has_permission(self, request: Request):
 
         restricted_methods = ["PATCH", "DELETE"]
 
