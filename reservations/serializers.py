@@ -1,5 +1,8 @@
 from rest_framework import serializers
 
+from room_categories.serializers import RoomCategoriesSerializer
+from users.serializers import GuestsSerializer
+
 
 class ReservationsSerializer(serializers.Serializer):
     reservation_id = serializers.UUIDField(read_only=True)
@@ -11,7 +14,21 @@ class ReservationsSerializer(serializers.Serializer):
     total_value = serializers.DecimalField(
         required=False, max_digits=10, decimal_places=2
     )
-    guest_email = serializers.EmailField(required=True, write_only=True)
+    guest = serializers.EmailField(write_only=True)
+
+
+class ReservationsDataSerializer(serializers.Serializer):
+    reservation_id = serializers.UUIDField(read_only=True)
+    in_reservation_date = serializers.DateField(required=True)
+    out_reservation_date = serializers.DateField(required=True)
+    checkin_date = serializers.DateField(required=False)
+    checkout_date = serializers.DateField(required=False)
+    status = serializers.CharField(required=True)
+    total_value = serializers.DecimalField(
+        required=False, max_digits=10, decimal_places=2
+    )
+    guest_id = (GuestsSerializer(),)
+    room_category_id = (RoomCategoriesSerializer(),)
 
 
 class CheckinReservationSerializer(serializers.Serializer):
