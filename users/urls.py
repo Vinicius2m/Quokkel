@@ -9,4 +9,8 @@ urlpatterns = [
     path("admin/login/", UsersView.as_view()),
     path("guests/register/", GuestsView.as_view()),
     path("guests/login/", UsersView.as_view()),
+    path("users/admins/", AdminView.as_view()),
+    path("users/admins/<str:user_id>", AdminView.as_view()),
+    path("users/guests/", AdminView.as_view()),
+    path("users/guests/<str:user_id>", AdminView.as_view()),
 ]

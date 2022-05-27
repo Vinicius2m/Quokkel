@@ -4,12 +4,12 @@ from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
+
 from rest_framework.views import APIView
 
 from users.models import User
 from users.permissions import IsStaff
-from users.serializers import (AdminSerializer, GuestsSerializer,
-                               LoginSerializer)
+from users.serializers import AdminSerializer, GuestsSerializer, LoginSerializer
 
 
 class AdminView(APIView):
@@ -37,17 +37,27 @@ class AdminView(APIView):
 
         return Response(serializer.data, status.HTTP_201_CREATED)
 
-    def get(self, _, admin_id=None):
+    def get(self, request, user_id=None):
 
-        if not admin_id:
-            users = User.objects.all()
+        path = request.get_full_path()
+
+        if not user_id:
+
+            users = User.objects.filter(is_staff=False).all()
+
+            if "admins" in path:
+                users = User.objects.filter(is_staff=True).all()
+
             serializer = AdminSerializer(users, many=True)
             return Response(serializer.data, status.HTTP_200_OK)
 
-        user = User.objects.filter(user_id=admin_id)
+        user = User.objects.filter(user_id=user_id, is_staff=False)
+
+        if "admins" in path:
+            user = User.objects.filter(user_id=user_id, is_staff=True)
 
         if not user.exists():
-            return Response({"error": "Admin not found"}, status.HTTP_404_NOT_FOUND)
+            return Response({"error": "User not found"}, status.HTTP_404_NOT_FOUND)
 
         serializer = AdminSerializer(user.first())
 
