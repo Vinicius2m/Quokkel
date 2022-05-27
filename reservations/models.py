@@ -19,5 +19,5 @@ class Reservation(models.Model):
         "room_categories.RoomCategory", on_delete=models.CASCADE
     )
     room = models.ForeignKey(
-        "rooms.Room", on_delete=models.CASCADE, related_name="reservations"
+        "rooms.Room", on_delete=models.CASCADE, related_name="reservations", null=True
     )

@@ -18,5 +18,6 @@ from django.urls import include, path
 urlpatterns = [
     path("", include("users.urls")),
     path("", include("room_categories.urls")),
+    path("", include("reservations.urls")),
     path("", include("rooms.urls")),
 ]
