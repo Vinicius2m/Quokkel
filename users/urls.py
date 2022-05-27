@@ -5,13 +5,14 @@ from users.views import AdminView, GuestsView, UsersView
 urlpatterns = [
     path("admin/", AdminView.as_view()),
     path("admin/register/", AdminView.as_view()),
-    path("admin/<str:admin_id>/", AdminView.as_view()),
     path("admin/login/", UsersView.as_view()),
+    path("admin/<str:admin_id>/", AdminView.as_view()),
     path("guests/register/", GuestsView.as_view()),
     path("guests/login/", UsersView.as_view()),
     path("users/", AdminView.as_view()),
-    path("users/<str:user_id>/", AdminView.as_view()),
     path("users/admins/", AdminView.as_view()),
+    path("users/admins/<str:user_id>/", AdminView.as_view()),
     path("users/guests/", AdminView.as_view()),
+    path("users/guests/<str:user_id>/", AdminView.as_view()),
     path("guests/<str:guest_id>/", GuestsView.as_view()),
 ]

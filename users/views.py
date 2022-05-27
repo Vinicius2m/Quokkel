@@ -30,9 +30,14 @@ class AdminView(APIView):
         if found_user:
             return Response({"error": "Admin already exists"}, status.HTTP_409_CONFLICT)
 
-        user: User = User.objects.create(**serializer.validated_data)
-        user.set_password(serializer.validated_data["password"])
-        user.save()
+        serializer.validated_data["password"] = make_password(
+            serializer.validated_data["password"]
+        )
+
+        try:
+            user = User.objects.create(**serializer.validated_data)
+        except IntegrityError as e:
+            return Response({"error": str(e)}, status.HTTP_400_BAD_REQUEST)
 
         serializer = AdminSerializer(user)
 
@@ -80,7 +85,7 @@ class AdminView(APIView):
 
         try:
             user.update(**serializer.validated_data)
-        except Exception as e:
+        except IntegrityError as e:
             return Response({"error": str(e)}, status.HTTP_400_BAD_REQUEST)
 
         user: User = user.first()
@@ -120,7 +125,9 @@ class GuestsView(APIView):
             ).exists()
 
             if found_guest:
-                return Response({"error": "Guest already exists"}, status.HTTP_409_CONFLICT)
+                return Response(
+                    {"error": "Guest already exists"}, status.HTTP_409_CONFLICT
+                )
 
             guest: User = User.objects.create(**serializer.validated_data)
             guest.set_password(serializer.validated_data["password"])
@@ -129,7 +136,7 @@ class GuestsView(APIView):
             serializer = GuestsSerializer(guest)
 
             return Response(serializer.data, status.HTTP_201_CREATED)
-        
+
         except IntegrityError as error:
             return Response({"error": str(error)}, status.HTTP_409_CONFLICT)
 
@@ -175,6 +182,24 @@ class UsersView(APIView):
 
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
+        path = self.request.get_full_path()
+
+        if "admin" in path:
+            user = User.objects.filter(
+                email=serializer.validated_data["email"], is_staff=True
+            ).first()
+
+            if not user:
+                return Response({"error": "Admin not found"}, status.HTTP_404_NOT_FOUND)
+
+        if "guest" in path:
+            user = User.objects.filter(
+                email=serializer.validated_data["email"], is_staff=False
+            ).first()
+
+            if not user:
+                return Response({"error": "Guest not found"}, status.HTTP_404_NOT_FOUND)
 
         user = authenticate(
             username=serializer.validated_data["email"],
