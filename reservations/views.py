@@ -16,15 +16,18 @@ from rest_framework.status import (
 )
 from rest_framework.views import APIView
 
+from users.models import User
+from room_categories.models import RoomCategory
 from reservations.models import Reservation
+
 from reservations.serializers import (
     ReservationsDataSerializer,
     ReservationsSerializer,
     RetreiveReservationsSerializer,
     UpdateReservationsSerializer,
     CheckinReservationSerializer,
+    CheckoutReservationSerializer
 )
-from users.models import User
 from users.permissions import IsStaff
 
 
@@ -176,7 +179,45 @@ class CheckinReservationsView(APIView):
 
             reservation: Reservation = reservation.first()
 
-            serializer = CheckinReservationSerializer(reservation)
+            serializer = RetreiveReservationsSerializer(reservation)
+
+            return Response(serializer.data, status=HTTP_200_OK)
+
+        except ValidationError as error:
+            return Response({"error": error}, status=HTTP_400_BAD_REQUEST)
+
+
+class CheckoutReservationsView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsStaff]
+
+    def put(self, request: Request, reservation_id):
+
+        serializer = CheckoutReservationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            reservation: Reservation = Reservation.objects.filter(reservation_id=reservation_id)
+
+            if not reservation:
+                return Response({"error": "Reservation not found"}, status=HTTP_404_NOT_FOUND)
+
+            reservation_dict = reservation.first().__dict__
+
+            checkin_date = reservation_dict.get('checkin_date')
+            checkout_date = serializer.validated_data.get('checkout_date')
+
+            number_of_days = abs((checkout_date - checkin_date).days)
+
+            room_category_price = RoomCategory.objects.filter(room_category_id=reservation_dict.get('room_category_id')).first().price
+
+            serializer.validated_data['total_value'] = number_of_days*room_category_price
+
+            reservation.update(**serializer.validated_data)
+
+            reservation: Reservation = reservation.first()
+
+            serializer = RetreiveReservationsSerializer(reservation)
 
             return Response(serializer.data, status=HTTP_200_OK)
 
