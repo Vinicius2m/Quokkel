@@ -12,7 +12,7 @@ from .models import Reservation
 
 
 class ReservationsView(APIView):
-    def post(self, request: Request):
+    def post(self, request: Request, ):
         serializer = ReservationsSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
