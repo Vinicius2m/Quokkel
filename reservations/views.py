@@ -1,14 +1,20 @@
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.status import (HTTP_201_CREATED, HTTP_400_BAD_REQUEST,
-                                   HTTP_409_CONFLICT)
+from rest_framework.status import (
+    HTTP_200_OK,
+    HTTP_201_CREATED,
+    HTTP_400_BAD_REQUEST,
+    HTTP_409_CONFLICT,
+)
 from rest_framework.views import APIView
 
-from room_categories.models import RoomCategory
+from reservations.models import Reservation
+from reservations.serializers import (
+    ReservationsDataSerializer,
+    ReservationsSerializer,
+    RetreiveReservationsSerializer,
+)
 from users.models import User
-
-from .models import Reservation
-from .serializers import ReservationsDataSerializer, ReservationsSerializer
 
 
 class ReservationsView(APIView):
@@ -57,3 +63,20 @@ class ReservationsView(APIView):
             return Response(data=serializer.errors, status=HTTP_400_BAD_REQUEST)
 
         return Response(serializer.data, status=HTTP_201_CREATED)
+
+    def get(self, _: Request, guest_id: str = None):
+        if not guest_id:
+            reservations = list(Reservation.objects.all())
+
+            for reservation in reservations:
+                reservation.guest = User.objects.filter(
+                    user_id=reservation.guest_id
+                ).first()
+
+            serializer = RetreiveReservationsSerializer(reservations, many=True)
+        else:
+            reservations = Reservation.objects.filter(guest_id=guest_id)
+
+            serializer = ReservationsDataSerializer(reservations, many=True)
+
+        return Response(serializer.data, status=HTTP_200_OK)
