@@ -37,6 +37,22 @@ class AdminView(APIView):
 
         return Response(serializer.data, status.HTTP_201_CREATED)
 
+    def get(self, _, admin_id=None):
+
+        if not admin_id:
+            users = User.objects.all()
+            serializer = AdminSerializer(users, many=True)
+            return Response(serializer.data, status.HTTP_200_OK)
+
+        user = User.objects.filter(user_id=admin_id)
+
+        if not user.exists():
+            return Response({"error": "Admin not found"}, status.HTTP_404_NOT_FOUND)
+
+        serializer = AdminSerializer(user.first())
+
+        return Response(serializer.data, status.HTTP_200_OK)
+
     def patch(self, request, admin_id):
 
         user = User.objects.filter(user_id=admin_id)
@@ -65,7 +81,7 @@ class AdminView(APIView):
         user = User.objects.filter(user_id=admin_id)
 
         if not user.exists():
-            return Response({"error": "User not found"}, status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Admin not found"}, status.HTTP_404_NOT_FOUND)
 
         try:
             user.delete()
