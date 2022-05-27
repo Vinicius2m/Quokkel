@@ -1,15 +1,22 @@
 from django.contrib.auth import authenticate
-
+from django.contrib.auth.hashers import make_password
 from rest_framework import status
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from users.models import User
-from users.serializers import AdminSerializer, GuestsSerializer, LoginSerializer
+from users.permissions import IsStaff
+from users.serializers import (AdminSerializer, GuestsSerializer,
+                               LoginSerializer)
 
 
 class AdminView(APIView):
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsStaff]
+
     def post(self, request):
 
         serializer = AdminSerializer(data=request.data)
@@ -29,6 +36,29 @@ class AdminView(APIView):
         serializer = AdminSerializer(user)
 
         return Response(serializer.data, status.HTTP_201_CREATED)
+
+    def patch(self, request, admin_id):
+
+        user = User.objects.filter(user_id=admin_id)
+
+        serializer = AdminSerializer(data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+
+        if serializer.validated_data.get("password"):
+            serializer.validated_data["password"] = make_password(
+                serializer.validated_data["password"]
+            )
+
+        try:
+            user.update(**serializer.validated_data)
+        except Exception as e:
+            return Response({"error": str(e)}, status.HTTP_400_BAD_REQUEST)
+
+        user: User = user.first()
+
+        serializer = AdminSerializer(user)
+
+        return Response(serializer.data, status.HTTP_200_OK)
 
 
 class GuestsView(APIView):
@@ -65,7 +95,9 @@ class UsersView(APIView):
         )
 
         if not user:
-            return Response({"error": "Invalid credentials."}, status.HTTP_401_UNAUTHORIZED)
+            return Response(
+                {"error": "Invalid credentials."}, status.HTTP_401_UNAUTHORIZED
+            )
 
         token, _ = Token.objects.get_or_create(user=user)
 
