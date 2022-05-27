@@ -94,6 +94,7 @@ class ReservationsView(APIView):
 
 class RetrieveReservationsView(APIView):
     authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def get(self, _: Request, reservation_id: str):
         reservation = Reservation.objects.filter(reservation_id=reservation_id).first()
