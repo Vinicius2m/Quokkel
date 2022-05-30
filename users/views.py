@@ -43,34 +43,6 @@ class AdminView(APIView):
 
         return Response(serializer.data, status.HTTP_201_CREATED)
 
-    def get(self, _, user_id=None):
-
-        path = self.request.get_full_path()
-
-        if user_id:
-            user = User.objects.filter(user_id=user_id).first()
-
-            if not user:
-                return Response({"error": "User not found"}, status.HTTP_404_NOT_FOUND)
-
-            serializer = AdminSerializer(user)
-
-            return Response(serializer.data, status.HTTP_200_OK)
-
-        if "guests" not in path and "admins" not in path:
-            users = users = User.objects.all()
-            serializer = AdminSerializer(users, many=True)
-
-            return Response(serializer.data, status.HTTP_200_OK)
-
-        users = User.objects.filter(is_staff=False).all()
-
-        if "admins" in path:
-            users = User.objects.filter(is_staff=True).all()
-
-        serializer = AdminSerializer(users, many=True)
-        return Response(serializer.data, status.HTTP_200_OK)
-
     def patch(self, request, admin_id):
 
         user = User.objects.filter(user_id=admin_id)
@@ -178,6 +150,10 @@ class GuestsView(APIView):
 
 
 class UsersView(APIView):
+    
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsStaff]
+
     def post(self, request):
 
         serializer = LoginSerializer(data=request.data)
@@ -214,3 +190,37 @@ class UsersView(APIView):
         token, _ = Token.objects.get_or_create(user=user)
 
         return Response({"token": token.key}, status.HTTP_200_OK)
+    
+    def get(self, _, user_id=None):
+
+        path = self.request.get_full_path()
+
+        if user_id:
+            user = User.objects.filter(user_id=user_id).first()
+
+            if user.is_staff and "/admins" not in path:
+                return Response({"error": "Guest not found"}, status.HTTP_404_NOT_FOUND)
+
+            if not user.is_staff and "/guests" not in path:
+                return Response({"error": "Admin not found"}, status.HTTP_404_NOT_FOUND)
+
+            if not user:
+                return Response({"error": "User not found"}, status.HTTP_404_NOT_FOUND)
+
+            serializer = AdminSerializer(user)
+
+            return Response(serializer.data, status.HTTP_200_OK)
+
+        if "guests" not in path and "admins" not in path:
+            users = users = User.objects.all()
+            serializer = AdminSerializer(users, many=True)
+
+            return Response(serializer.data, status.HTTP_200_OK)
+
+        users = User.objects.filter(is_staff=False).all()
+
+        if "admins" in path:
+            users = User.objects.filter(is_staff=True).all()
+
+        serializer = AdminSerializer(users, many=True)
+        return Response(serializer.data, status.HTTP_200_OK)
