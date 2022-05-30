@@ -1,18 +1,23 @@
 from django.db import IntegrityError
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.status import (HTTP_200_OK, HTTP_201_CREATED,
-                                   HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND,
-                                   HTTP_422_UNPROCESSABLE_ENTITY,
-                                   HTTP_204_NO_CONTENT)
+                                   HTTP_204_NO_CONTENT, HTTP_400_BAD_REQUEST,
+                                   HTTP_404_NOT_FOUND,
+                                   HTTP_422_UNPROCESSABLE_ENTITY)
 from rest_framework.views import APIView
 
 from .models import RoomCategory
+from .permissions import IsStaff
 from .serializers import (RoomCategoriesSerializer,
                           UpdateRoomCategoriesSerializer)
 
 
 class RoomCategoriesView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsStaff]
+
     def post(self, request: Request):
         serializer = RoomCategoriesSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -76,9 +81,7 @@ class RoomCategoriesView(APIView):
             return Response({"error": str(error)}, status=HTTP_422_UNPROCESSABLE_ENTITY)
 
     def delete(self, request: Request, room_category_id: str):
-        room_category = RoomCategory.objects.filter(
-            room_category_id=room_category_id
-        )
+        room_category = RoomCategory.objects.filter(room_category_id=room_category_id)
 
         if not room_category:
             return Response(
