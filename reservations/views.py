@@ -26,7 +26,7 @@ from reservations.serializers import (
     RetreiveReservationsSerializer,
     UpdateReservationsSerializer,
     CheckinReservationSerializer,
-    CheckoutReservationSerializer
+    CheckoutReservationSerializer,
 )
 from users.permissions import IsStaff
 
@@ -61,7 +61,6 @@ class ReservationsView(APIView):
                 "in_reservation_date": request.data["in_reservation_date"],
                 "out_reservation_date": request.data["out_reservation_date"],
                 "status": request.data["status"],
-                "total_value": request.data["total_value"],
                 "guest_id": filtered_guest.__dict__["user_id"],
                 "room_category_id": room_category_id,
             }
@@ -170,10 +169,14 @@ class CheckinReservationsView(APIView):
         serializer.is_valid(raise_exception=True)
 
         try:
-            reservation: Reservation = Reservation.objects.filter(reservation_id=reservation_id)
+            reservation: Reservation = Reservation.objects.filter(
+                reservation_id=reservation_id
+            )
 
             if not reservation:
-                return Response({"error": "Reservation not found"}, status=HTTP_404_NOT_FOUND)
+                return Response(
+                    {"error": "Reservation not found"}, status=HTTP_404_NOT_FOUND
+                )
 
             reservation.update(**serializer.validated_data)
 
@@ -197,21 +200,33 @@ class CheckoutReservationsView(APIView):
         serializer.is_valid(raise_exception=True)
 
         try:
-            reservation: Reservation = Reservation.objects.filter(reservation_id=reservation_id)
+            reservation: Reservation = Reservation.objects.filter(
+                reservation_id=reservation_id
+            )
 
             if not reservation:
-                return Response({"error": "Reservation not found"}, status=HTTP_404_NOT_FOUND)
+                return Response(
+                    {"error": "Reservation not found"}, status=HTTP_404_NOT_FOUND
+                )
 
             reservation_dict = reservation.first().__dict__
 
-            checkin_date = reservation_dict.get('checkin_date')
-            checkout_date = serializer.validated_data.get('checkout_date')
+            checkin_date = reservation_dict.get("checkin_date")
+            checkout_date = serializer.validated_data.get("checkout_date")
 
             number_of_days = abs((checkout_date - checkin_date).days)
 
-            room_category_price = RoomCategory.objects.filter(room_category_id=reservation_dict.get('room_category_id')).first().price
+            room_category_price = (
+                RoomCategory.objects.filter(
+                    room_category_id=reservation_dict.get("room_category_id")
+                )
+                .first()
+                .price
+            )
 
-            serializer.validated_data['total_value'] = number_of_days*room_category_price
+            serializer.validated_data["total_value"] = (
+                number_of_days * room_category_price
+            )
 
             reservation.update(**serializer.validated_data)
 
