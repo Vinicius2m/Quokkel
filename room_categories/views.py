@@ -8,6 +8,8 @@ from rest_framework.status import (HTTP_200_OK, HTTP_201_CREATED,
                                    HTTP_422_UNPROCESSABLE_ENTITY)
 from rest_framework.views import APIView
 
+from rooms.models import Room
+
 from .models import RoomCategory
 from .permissions import IsStaff
 from .serializers import (RoomCategoriesSerializer,
@@ -47,10 +49,19 @@ class RoomCategoriesView(APIView):
             room_category = RoomCategory.objects.filter(
                 room_category_id=room_category_id
             ).first()
+            number_of_rooms = Room.objects.filter(room_category=room_category).count()
+            print(number_of_rooms)
+            room_category.__setattr__("number_of_rooms", number_of_rooms)
             serializer = RoomCategoriesSerializer(room_category)
             return Response(serializer.data, status=HTTP_200_OK)
 
-        rooms_category = RoomCategory.objects.all()
+        rooms_category_data = RoomCategory.objects.all()
+        rooms_category = []
+
+        for room_category in rooms_category_data:
+            number_of_rooms = Room.objects.filter(room_category=room_category).count()
+            room_category.__setattr__("number_of_rooms", number_of_rooms)
+            rooms_category.append(room_category)
 
         serializer = RoomCategoriesSerializer(rooms_category, many=True)
 

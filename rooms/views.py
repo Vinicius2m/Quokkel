@@ -22,11 +22,14 @@ class RoomView(ListCreateAPIView):
             room_category_id=room_category_id
         ).first()
         if not room_category:
-            return Response({"error": "Room category not found"}, status=404)
+            return Response(
+                {"error": "Room category not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
         rooms_data = request.data
-        rooms_data["room_category"] = room_category.room_category_id
         serializer = RoomSerializer(data=rooms_data)
         if serializer.is_valid():
+            serializer.validated_data["room_category"] = room_category
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
