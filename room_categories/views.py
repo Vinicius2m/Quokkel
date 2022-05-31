@@ -10,9 +10,9 @@ from rest_framework.views import APIView
 
 from rooms.models import Room
 
-from .models import RoomCategory
-from .permissions import IsStaff
-from .serializers import (RoomCategoriesSerializer,
+from room_categories.models import RoomCategory
+from room_categories.permissions import IsStaff
+from room_categories.serializers import (RoomCategoriesSerializer,
                           UpdateRoomCategoriesSerializer)
 
 
@@ -61,6 +61,14 @@ class RoomCategoriesView(APIView):
         for room_category in rooms_category_data:
             number_of_rooms = Room.objects.filter(room_category=room_category).count()
             room_category.__setattr__("number_of_rooms", number_of_rooms)
+            rooms_available = Room.objects.filter(
+                room_category=room_category, available=True
+            ).count()
+            room_category.__setattr__("rooms_available", rooms_available)
+            rooms_occupy = Room.objects.filter(
+                room_category=room_category, available=False
+            ).count()
+            room_category.__setattr__("rooms_occupy", rooms_occupy)
             rooms_category.append(room_category)
 
         serializer = RoomCategoriesSerializer(rooms_category, many=True)
