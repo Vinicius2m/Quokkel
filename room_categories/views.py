@@ -10,9 +10,9 @@ from rest_framework.views import APIView
 
 from rooms.models import Room
 
-from .models import RoomCategory
-from .permissions import IsStaff
-from .serializers import (RoomCategoriesSerializer,
+from room_categories.models import RoomCategory
+from room_categories.permissions import IsStaff
+from room_categories.serializers import (RoomCategoriesSerializer,
                           UpdateRoomCategoriesSerializer)
 
 

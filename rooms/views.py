@@ -9,7 +9,7 @@ from room_categories.models import RoomCategory
 from rooms.models import Room
 from rooms.serializers import RoomSerializer
 
-from .permissions import IsStaff
+from rooms.permissions import IsStaff
 
 
 class RoomView(ListCreateAPIView):

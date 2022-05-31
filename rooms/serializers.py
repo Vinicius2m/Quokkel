@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from room_categories.serializers import RoomCategoriesSerializer
 
-from .models import Room
+from rooms.models import Room
 
 
 class RoomSerializer(serializers.ModelSerializer):
