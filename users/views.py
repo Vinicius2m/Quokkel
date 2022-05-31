@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from users.models import User
-from users.permissions import IsGuest, IsStaff
+from users.permissions import IsGuest, IsStaff, UsersViewPermission
 from users.serializers import AdminSerializer, GuestsSerializer, LoginSerializer
 
 
@@ -150,9 +150,9 @@ class GuestsView(APIView):
 
 
 class UsersView(APIView):
-    
+
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsStaff]
+    permission_classes = [UsersViewPermission]
 
     def post(self, request):
 
@@ -190,7 +190,7 @@ class UsersView(APIView):
         token, _ = Token.objects.get_or_create(user=user)
 
         return Response({"token": token.key}, status.HTTP_200_OK)
-    
+
     def get(self, _, user_id=None):
 
         path = self.request.get_full_path()
