@@ -5,7 +5,7 @@ from rest_framework.request import Request
 class IsStaff(BasePermission):
     def has_permission(self, request: Request, _):
 
-        restricted_methods = ["GET", "PATCH", "DELETE", "PUT"]
+        restricted_methods = ["POST", "GET", "PATCH", "DELETE", "PUT"]
 
         if request.method in restricted_methods and (
             request.user.is_anonymous or not request.user.is_staff
@@ -13,6 +13,20 @@ class IsStaff(BasePermission):
             return False
 
         return True
+
+
+class UsersViewPermission(BasePermission):
+    def has_permission(self, request: Request, _):
+
+        restricted_methods = ["GET"]
+
+        if request.method in restricted_methods and (
+            request.user.is_anonymous or not request.user.is_staff
+        ):
+            return False
+
+        return True
+
 
 class IsGuest(BasePermission):
     def has_permission(self, request: Request, _):
