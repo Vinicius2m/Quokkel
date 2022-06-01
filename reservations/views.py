@@ -270,6 +270,12 @@ class CheckoutReservationsView(APIView):
                 number_of_days * room_category_price
             )
 
+            clear_room = {"room": None}
+            close_status = {"status": "closed"}
+
+            reservation.update(**clear_room)
+            reservation.update(**close_status)
+
             reservation.update(**serializer.validated_data)
 
             reservation: Reservation = reservation.first()
