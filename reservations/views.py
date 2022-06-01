@@ -1,3 +1,4 @@
+from ast import Break
 from django.core.exceptions import BadRequest
 from django.db import IntegrityError
 from django.forms import ValidationError
@@ -150,6 +151,9 @@ class UpdateReservationsView(APIView):
         if not request.data:
             return Response({"error": "Data is required"}, status=HTTP_400_BAD_REQUEST)
 
+        serializer = UpdateReservationsSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
         reservation = Reservation.objects.filter(reservation_id=reservation_id)
 
         if not reservation.first():
@@ -157,8 +161,33 @@ class UpdateReservationsView(APIView):
                 {"error": "Reservation not found"}, status=HTTP_404_NOT_FOUND
             )
 
-        serializer = UpdateReservationsSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        room_category_id = reservation.first().room_category.room_category_id
+
+        # Obter lista das reservas com datas conflitantes
+        conflicted_reservations = get_conflicted_reservations(
+            reservation_in_date=request.data.get(
+                "in_reservation_date", reservation.first().in_reservation_date
+            ),
+            reservation_out_date=request.data.get(
+                "out_reservation_date", reservation.first().out_reservation_date
+            ),
+            reservation_id=reservation_id,
+        )
+
+        # Filtar conflito por categoria de quarto
+        conflicted_reservations = [
+            reservation
+            for reservation in conflicted_reservations
+            if str(reservation.room_category_id) == str(room_category_id)
+        ]
+
+        rooms_quantity = Room.objects.filter(room_category=room_category_id).count()
+
+        if rooms_quantity <= len(conflicted_reservations):
+            return Response(
+                {"message": "There's no available rooms for this category"},
+                status=HTTP_400_BAD_REQUEST,
+            )
 
         try:
             reservation.update(**serializer.validated_data)
