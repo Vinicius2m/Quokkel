@@ -286,6 +286,9 @@ class CheckoutReservationsView(APIView):
                 number_of_days * room_category_price
             )
 
+            free_room = {"available": True}
+            room_available = Room.objects.filter(room_id=reservation_dict.get("room_id")).update(**free_room)
+
             clear_room = {"room": None}
             close_status = {"status": "closed"}
 
