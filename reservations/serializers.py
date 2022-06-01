@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from room_categories.serializers import RoomCategoriesSerializer
+from rooms.serializers import RoomSerializer
 from users.serializers import GuestsSerializer
 
 
@@ -26,7 +27,8 @@ class ReservationsDataSerializer(serializers.Serializer):
         required=False, max_digits=10, decimal_places=2, coerce_to_string=False
     )
     guest_id = (GuestsSerializer(),)
-    room_category_id = (RoomCategoriesSerializer(),)
+    room_category = RoomCategoriesSerializer(required=False)
+    room = RoomSerializer(required=False)
 
 
 class RetreiveReservationsSerializer(serializers.Serializer):
@@ -40,6 +42,8 @@ class RetreiveReservationsSerializer(serializers.Serializer):
         required=False, max_digits=10, decimal_places=2, coerce_to_string=False
     )
     guest = GuestsSerializer()
+    room = RoomSerializer(required=False)
+    room_category = RoomCategoriesSerializer(required=False)
 
 
 class CheckinReservationSerializer(serializers.Serializer):

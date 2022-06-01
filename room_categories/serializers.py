@@ -10,6 +10,8 @@ class RoomCategoriesSerializer(serializers.Serializer):
     max_guest_number = serializers.IntegerField()
 
     number_of_rooms = serializers.IntegerField(read_only=True)
+    rooms_available = serializers.IntegerField(read_only=True)
+    rooms_occupy = serializers.IntegerField(read_only=True)
 
 
 class UpdateRoomCategoriesSerializer(serializers.Serializer):
