@@ -67,12 +67,14 @@ class ReservationsView(APIView):
             rooms_quantity = Room.objects.filter(room_category=room_category_id).count()
 
             if rooms_quantity <= len(conflicted_reservations):
-                raise BadRequest("There's no available rooms for this category")
+                raise BadRequest(
+                    f"There's not available rooms for this category between {serializer.validated_data['in_reservation_date']} and {serializer.validated_data['out_reservation_date']}"
+                )
 
             reservation_data = {
                 "in_reservation_date": request.data["in_reservation_date"],
                 "out_reservation_date": request.data["out_reservation_date"],
-                "status": request.data["status"],
+                "status": "reserved",
                 "guest_id": filtered_guest.__dict__["user_id"],
                 "room_category_id": room_category_id,
             }
@@ -161,6 +163,18 @@ class UpdateReservationsView(APIView):
                 {"error": "Reservation not found"}, status=HTTP_404_NOT_FOUND
             )
 
+        if serializer.validated_data.get("status") and serializer.validated_data.get(
+            "status"
+        ) not in [
+            "reserved",
+            "occupied",
+            "closed",
+        ]:
+            return Response(
+                {"error": "Invalid status - (reserved, occupied, closed)"},
+                status=HTTP_400_BAD_REQUEST,
+            )
+
         room_category_id = reservation.first().room_category.room_category_id
 
         # Obter lista das reservas com datas conflitantes
@@ -185,7 +199,9 @@ class UpdateReservationsView(APIView):
 
         if rooms_quantity <= len(conflicted_reservations):
             return Response(
-                {"message": "There's no available rooms for this category"},
+                {
+                    "message": f"There's not available rooms for this category between {serializer.validated_data['in_reservation_date']} and {serializer.validated_data['out_reservation_date']}"
+                },
                 status=HTTP_400_BAD_REQUEST,
             )
 
