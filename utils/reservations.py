@@ -17,12 +17,14 @@ def get_conflicted_reservations(
         reservation_out_date, date
     ):
         try:
-            reservation_in_date = datetime.strptime(
-                reservation_in_date, "%Y-%m-%d"
-            ).date()
-            reservation_out_date = datetime.strptime(
-                reservation_out_date, "%Y-%m-%d"
-            ).date()
+            if type(reservation_in_date) is str:
+                reservation_in_date = datetime.strptime(
+                    reservation_in_date, "%Y-%m-%d"
+                ).date()
+            if type(reservation_out_date) is str:
+                reservation_out_date = datetime.strptime(
+                    reservation_out_date, "%Y-%m-%d"
+                ).date()
         except TypeError as error:
             raise TypeError(error)
 
