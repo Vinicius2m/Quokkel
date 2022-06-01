@@ -1,7 +1,6 @@
 from django.core.exceptions import BadRequest
 from django.db import IntegrityError
 from django.forms import ValidationError
-
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
@@ -16,19 +15,20 @@ from rest_framework.status import (
 )
 from rest_framework.views import APIView
 
-from users.models import User
-from room_categories.models import RoomCategory
 from reservations.models import Reservation
-
 from reservations.serializers import (
+    CheckinReservationSerializer,
+    CheckoutReservationSerializer,
     ReservationsDataSerializer,
     ReservationsSerializer,
     RetreiveReservationsSerializer,
     UpdateReservationsSerializer,
-    CheckinReservationSerializer,
-    CheckoutReservationSerializer,
 )
+from room_categories.models import RoomCategory
+from rooms.models import Room
+from users.models import User
 from users.permissions import IsStaff
+from utils.reservations import get_conflicted_reservations
 
 
 class ReservationsView(APIView):
@@ -44,18 +44,29 @@ class ReservationsView(APIView):
                 email=serializer.validated_data["guest"]
             ).first()
 
-            conflicting_reservation = Reservation.objects.filter(
-                in_reservation_date=request.data["in_reservation_date"]
-            ).first()
-
-            if conflicting_reservation:
-                raise ValidationError("Reservation unavailable")
-
-            if len(room_category_id) == 0:
+            if not room_category_id:
                 raise BadRequest("Please provide a room category")
 
             if not filtered_guest:
                 raise BadRequest("Guest does not exist")
+
+            # Obter lista das reservas com datas conflitantes
+            conflicted_reservations = get_conflicted_reservations(
+                reservation_in_date=serializer.validated_data["in_reservation_date"],
+                reservation_out_date=serializer.validated_data["out_reservation_date"],
+            )
+
+            # Filtar conflito por categoria de quarto
+            conflicted_reservations = [
+                reservation
+                for reservation in conflicted_reservations
+                if str(reservation.room_category_id) == str(room_category_id)
+            ]
+
+            rooms_quantity = Room.objects.filter(room_category=room_category_id).count()
+
+            if rooms_quantity <= len(conflicted_reservations):
+                raise BadRequest("There's no available rooms for this category")
 
             reservation_data = {
                 "in_reservation_date": request.data["in_reservation_date"],
@@ -75,6 +86,8 @@ class ReservationsView(APIView):
         except ValidationError as error:
             return Response({"error": error.message}, status=HTTP_409_CONFLICT)
         except BadRequest as error:
+            return Response({"error": str(error)}, status=HTTP_400_BAD_REQUEST)
+        except TypeError as error:
             return Response({"error": str(error)}, status=HTTP_400_BAD_REQUEST)
 
     def get(self, _: Request, guest_id: str = None):
