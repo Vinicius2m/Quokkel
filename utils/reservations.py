@@ -49,4 +49,10 @@ def get_conflicted_reservations(
             if reservation.in_reservation_date <= reservation_out_date:
                 conflicted_reservations.append(reservation)
 
+    conflicted_reservations = [
+        reservation
+        for reservation in conflicted_reservations
+        if reservation.status != "closed"
+    ]
+
     return conflicted_reservations

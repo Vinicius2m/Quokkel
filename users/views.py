@@ -45,6 +45,14 @@ class AdminView(APIView):
 
     def patch(self, request, admin_id):
 
+        if not request.data:
+            return Response({"error": "Data is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if len(admin_id) != 36:
+            return Response(
+                {"error": "admin_id must be a valid uuid"}, status=status.HTTP_404_NOT_FOUND
+            )
+
         user = User.objects.filter(user_id=admin_id)
 
         serializer = AdminSerializer(data=request.data, partial=True)
@@ -67,6 +75,10 @@ class AdminView(APIView):
         return Response(serializer.data, status.HTTP_200_OK)
 
     def delete(self, _, admin_id):
+        if len(admin_id) != 36:
+            return Response(
+                {"error": "admin_id must be a valid uuid"}, status=status.HTTP_404_NOT_FOUND
+            )
 
         user = User.objects.filter(user_id=admin_id)
 
@@ -114,6 +126,14 @@ class GuestsView(APIView):
 
     def patch(self, request, guest_id):
 
+        if not request.data:
+            return Response({"error": "Data is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if len(guest_id) != 36:
+            return Response(
+                {"error": "guest_id must be a valid uuid"}, status=status.HTTP_404_NOT_FOUND
+            )
+
         serializer = GuestsSerializer(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
 
@@ -138,6 +158,10 @@ class GuestsView(APIView):
                 )
 
     def delete(self, _, guest_id):
+        if len(guest_id) != 36:
+            return Response(
+                {"error": "guest_id must be a valid uuid"}, status=status.HTTP_404_NOT_FOUND
+            )
 
         try:
             guest: User = User.objects.filter(user_id=guest_id)
@@ -192,10 +216,15 @@ class UsersView(APIView):
         return Response({"token": token.key}, status.HTTP_200_OK)
 
     def get(self, _, user_id=None):
+        
 
         path = self.request.get_full_path()
 
         if user_id:
+            if len(user_id) != 36:
+                return Response(
+                    {"error": "user_id must be a valid uuid"}, status=status.HTTP_404_NOT_FOUND
+                )
             user = User.objects.filter(user_id=user_id).first()
 
             if user.is_staff and "/admins" not in path:

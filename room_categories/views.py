@@ -53,7 +53,11 @@ class RoomCategoriesView(APIView):
         date_in = request.GET.get("date_in", today)
         date_out = request.GET.get("date_out", tomorrow)
 
-        if room_category_id:
+        if len(room_category_id):
+            if len(room_category_id) != 36:
+                return Response(
+                    {"error": "room_category_id must be a valid uuid"}, status=HTTP_404_NOT_FOUND
+                )
             conflicted_reservations = get_conflicted_reservations(
                 reservation_in_date=date_in,
                 reservation_out_date=date_out,
@@ -105,6 +109,15 @@ class RoomCategoriesView(APIView):
         return Response(serializer.data, status=HTTP_200_OK)
 
     def patch(self, request: Request, room_category_id: str):
+
+        if not request.data:
+            return Response({"error": "Data is required"}, status=HTTP_400_BAD_REQUEST)
+
+        if len(room_category_id) != 36:
+            return Response(
+                {"error": "room_category_id must be a valid uuid"}, status=HTTP_404_NOT_FOUND
+            )
+
         serializer = UpdateRoomCategoriesSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -129,6 +142,10 @@ class RoomCategoriesView(APIView):
             return Response({"error": str(error)}, status=HTTP_422_UNPROCESSABLE_ENTITY)
 
     def delete(self, request: Request, room_category_id: str):
+        if len(room_category_id) != 36:
+            return Response(
+                {"error": "room_category_id must be a valid uuid"}, status=HTTP_404_NOT_FOUND
+            )
         room_category = RoomCategory.objects.filter(room_category_id=room_category_id)
 
         if not room_category:
