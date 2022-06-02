@@ -1,3 +1,5 @@
+from datetime import date, timedelta
+
 from django.db import IntegrityError
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.request import Request
@@ -8,12 +10,12 @@ from rest_framework.status import (HTTP_200_OK, HTTP_201_CREATED,
                                    HTTP_422_UNPROCESSABLE_ENTITY)
 from rest_framework.views import APIView
 
+from room_categories.models import RoomCategory
+from room_categories.permissions import IsStaff
+from room_categories.serializers import (RoomCategoriesSerializer,
+                                         UpdateRoomCategoriesSerializer)
 from rooms.models import Room
-
-from .models import RoomCategory
-from .permissions import IsStaff
-from .serializers import (RoomCategoriesSerializer,
-                          UpdateRoomCategoriesSerializer)
+from utils.reservations import get_conflicted_reservations
 
 
 class RoomCategoriesView(APIView):
@@ -45,13 +47,32 @@ class RoomCategoriesView(APIView):
 
     def get(self, request: Request, room_category_id: str = None):
 
+        today = date.today()
+        tomorrow = date.today() + timedelta(days=1)
+
+        date_in = request.GET.get("date_in", today)
+        date_out = request.GET.get("date_out", tomorrow)
+
         if room_category_id:
+            conflicted_reservations = get_conflicted_reservations(
+                reservation_in_date=date_in,
+                reservation_out_date=date_out,
+            )
+
+            conflicted_reservations = [
+                reservation
+                for reservation in conflicted_reservations
+                if str(reservation.room_category_id) == str(room_category_id)
+            ]
             room_category = RoomCategory.objects.filter(
                 room_category_id=room_category_id
             ).first()
             number_of_rooms = Room.objects.filter(room_category=room_category).count()
-            print(number_of_rooms)
             room_category.__setattr__("number_of_rooms", number_of_rooms)
+            rooms_available = number_of_rooms - len(conflicted_reservations)
+            room_category.__setattr__("rooms_available", rooms_available)
+            rooms_occupy = len(conflicted_reservations)
+            room_category.__setattr__("rooms_occupy", rooms_occupy)
             serializer = RoomCategoriesSerializer(room_category)
             return Response(serializer.data, status=HTTP_200_OK)
 
@@ -59,8 +80,24 @@ class RoomCategoriesView(APIView):
         rooms_category = []
 
         for room_category in rooms_category_data:
+            conflicted_reservations = get_conflicted_reservations(
+                reservation_in_date=date_in,
+                reservation_out_date=date_out,
+            )
+
+            conflicted_reservations = [
+                reservation
+                for reservation in conflicted_reservations
+                if str(reservation.room_category_id)
+                == str(room_category.room_category_id)
+            ]
+
             number_of_rooms = Room.objects.filter(room_category=room_category).count()
             room_category.__setattr__("number_of_rooms", number_of_rooms)
+            rooms_available = number_of_rooms - len(conflicted_reservations)
+            room_category.__setattr__("rooms_available", rooms_available)
+            rooms_occupy = len(conflicted_reservations)
+            room_category.__setattr__("rooms_occupy", rooms_occupy)
             rooms_category.append(room_category)
 
         serializer = RoomCategoriesSerializer(rooms_category, many=True)

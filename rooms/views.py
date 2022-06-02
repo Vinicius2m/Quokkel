@@ -3,12 +3,13 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.generics import (ListCreateAPIView,
                                      RetrieveUpdateDestroyAPIView)
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from room_categories.models import RoomCategory
 from rooms.models import Room
 from rooms.serializers import RoomSerializer
 
-from .permissions import IsStaff
+from rooms.permissions import IsStaff
 
 
 class RoomView(ListCreateAPIView):
@@ -42,3 +43,24 @@ class RoomDetailView(RetrieveUpdateDestroyAPIView):
     serializer_class = RoomSerializer
     lookup_url_kwarg = "room_id"
     lookup_field = "room_id"
+
+
+class RoomStatusView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsStaff]
+
+    def get(self, request, room_category_id):
+
+        rooms = Room.objects.filter(room_category_id=room_category_id).all()
+
+        available = request.GET.get("available", None)
+
+        if available:
+            if available == "true":
+                rooms = rooms.filter(available=True)
+            elif available == "false":
+                rooms = rooms.filter(available=False)
+
+        serializer = RoomSerializer(rooms, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
