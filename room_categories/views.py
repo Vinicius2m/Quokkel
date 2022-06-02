@@ -53,7 +53,7 @@ class RoomCategoriesView(APIView):
         date_in = request.GET.get("date_in", today)
         date_out = request.GET.get("date_out", tomorrow)
 
-        if len(room_category_id):
+        if room_category_id:
             if len(room_category_id) != 36:
                 return Response(
                     {"error": "room_category_id must be a valid uuid"}, status=HTTP_404_NOT_FOUND
