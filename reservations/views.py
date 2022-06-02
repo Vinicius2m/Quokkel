@@ -36,6 +36,11 @@ class ReservationsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request: Request, room_category_id: str = ""):
+        if room_category_id != 36:
+            return Response(
+                {"error": "room_category_id must be a valid uuid"}, status=HTTP_404_NOT_FOUND
+            )
+        
         serializer = ReservationsSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -96,6 +101,10 @@ class ReservationsView(APIView):
             return Response({"error": str(error)}, status=HTTP_400_BAD_REQUEST)
 
     def get(self, _: Request, guest_id: str = None):
+        if guest_id != 36:
+            return Response(
+                {"error": "guest_id must be a valid uuid"}, status=HTTP_404_NOT_FOUND
+            )
         if not guest_id:
             reservations = list(Reservation.objects.all())
 
@@ -118,9 +127,9 @@ class DeleteReservationView(APIView):
     permission_classes = [IsStaff]
 
     def delete(self, _: Request, reservation_id: str):
-        if not reservation_id:
+        if reservation_id != 36:
             return Response(
-                {"error": "Reservation does not exist"}, status=HTTP_404_NOT_FOUND
+                {"error": "reservation_id must be a valid uuid"}, status=HTTP_404_NOT_FOUND
             )
 
         try:
@@ -137,6 +146,10 @@ class RetrieveReservationsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, _: Request, reservation_id: str):
+        if reservation_id != 36:
+            return Response(
+                {"error": "reservation_id must be a valid uuid"}, status=HTTP_404_NOT_FOUND
+            )
         reservation = Reservation.objects.filter(reservation_id=reservation_id).first()
 
         if not reservation:
@@ -152,6 +165,10 @@ class UpdateReservationsView(APIView):
     permission_classes = [IsStaff]
 
     def patch(self, request: Request, reservation_id):
+        if reservation_id != 36:
+            return Response(
+                {"error": "reservation_id must be a valid uuid"}, status=HTTP_404_NOT_FOUND
+            )
         if not request.data:
             return Response({"error": "Data is required"}, status=HTTP_400_BAD_REQUEST)
 
@@ -224,6 +241,10 @@ class CheckinReservationsView(APIView):
     permission_classes = [IsStaff]
 
     def put(self, request: Request, reservation_id):
+        if reservation_id != 36:
+            return Response(
+                {"error": "reservation_id must be a valid uuid"}, status=HTTP_404_NOT_FOUND
+            )
 
         serializer = CheckinReservationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -273,6 +294,10 @@ class CheckoutReservationsView(APIView):
     permission_classes = [IsStaff]
 
     def put(self, request: Request, reservation_id):
+        if reservation_id != 36:
+            return Response(
+                {"error": "reservation_id must be a valid uuid"}, status=HTTP_404_NOT_FOUND
+            )
 
         serializer = CheckoutReservationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
