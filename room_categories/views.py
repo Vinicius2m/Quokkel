@@ -105,6 +105,8 @@ class RoomCategoriesView(APIView):
         return Response(serializer.data, status=HTTP_200_OK)
 
     def patch(self, request: Request, room_category_id: str):
+        if not request.data:
+            return Response({"error": "Data is required"}, status=HTTP_400_BAD_REQUEST)
         serializer = UpdateRoomCategoriesSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
