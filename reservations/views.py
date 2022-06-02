@@ -42,7 +42,7 @@ class ReservationsView(APIView):
 
         try:
             filtered_guest = User.objects.filter(
-                email=serializer.validated_data["guest"]
+                email=serializer.validated_data["guest_email"]
             ).first()
 
             if not room_category_id:
@@ -65,6 +65,9 @@ class ReservationsView(APIView):
             ]
 
             rooms_quantity = Room.objects.filter(room_category=room_category_id).count()
+
+            if not rooms_quantity:
+                raise BadRequest("There are no rooms available for this category")
 
             if rooms_quantity <= len(conflicted_reservations):
                 raise BadRequest(
@@ -267,16 +270,22 @@ class CheckoutReservationsView(APIView):
                     {"error": "Reservation not found"}, status=HTTP_404_NOT_FOUND
                 )
 
-            reservation_dict = reservation.first().__dict__
+            reservation_dict = reservation.first()
 
-            checkin_date = reservation_dict.get("checkin_date")
+            checkin_date = reservation_dict.checkin_date
             checkout_date = serializer.validated_data.get("checkout_date")
 
-            number_of_days = abs((checkout_date - checkin_date).days)
+            if reservation_dict.checkout_date:
+                return Response(
+                    {"error": "Reservation already checked out"},
+                    status=HTTP_409_CONFLICT
+                )
+
+            number_of_days = abs((checkout_date - checkin_date).days) + 1
 
             room_category_price = (
                 RoomCategory.objects.filter(
-                    room_category_id=reservation_dict.get("room_category_id")
+                    room_category_id=reservation_dict.room_category_id
                 )
                 .first()
                 .price
@@ -286,14 +295,12 @@ class CheckoutReservationsView(APIView):
                 number_of_days * room_category_price
             )
 
-            free_room = {"available": True}
-            room_available = Room.objects.filter(room_id=reservation_dict.get("room_id")).update(**free_room)
+            Room.objects.filter(room_id=reservation_dict.room_id).update(
+                **{"available": True}
+            )
 
-            clear_room = {"room": None}
-            close_status = {"status": "closed"}
-
-            reservation.update(**clear_room)
-            reservation.update(**close_status)
+            serializer.validated_data["status"] = "closed"
+            serializer.validated_data["room"] = None
 
             reservation.update(**serializer.validated_data)
 
@@ -305,3 +312,8 @@ class CheckoutReservationsView(APIView):
 
         except ValidationError as error:
             return Response({"error": error}, status=HTTP_400_BAD_REQUEST)
+        except TypeError as error:
+            return Response(
+                {"error": error},
+                status=HTTP_400_BAD_REQUEST,
+            )

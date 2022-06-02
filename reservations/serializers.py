@@ -13,7 +13,7 @@ class ReservationsSerializer(serializers.Serializer):
     total_value = serializers.DecimalField(
         required=False, max_digits=10, decimal_places=2, coerce_to_string=False
     )
-    guest = serializers.EmailField(write_only=True)
+    guest_email = serializers.EmailField(write_only=True)
 
 
 class ReservationsDataSerializer(serializers.Serializer):
