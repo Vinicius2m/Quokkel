@@ -31,7 +31,7 @@ def get_conflicted_reservations(
     # Verificar se uma reservation_id foi informada ao chamar a função
     # Caso sim, deverá retornar os conflitos apenas das reservas que possuam id diferente ao reservation_id
     # Pode facilitar para a função de patch de reserva
-    if reservation_id:
+    if len(reservation_id):
         available_reservations = [
             reservation
             for reservation in available_reservations

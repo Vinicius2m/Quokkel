@@ -19,7 +19,7 @@ class RoomView(ListCreateAPIView):
     serializer_class = RoomSerializer
 
     def post(self, request, room_category_id):
-        if room_category_id != 36:
+        if len(room_category_id) != 36:
             return Response(
                 {"error": "room_category_id must be a valid uuid"}, status=status.HTTP_404_NOT_FOUND
             )
@@ -54,7 +54,7 @@ class RoomStatusView(APIView):
     permission_classes = [IsStaff]
 
     def get(self, request, room_category_id):
-        if room_category_id != 36:
+        if len(room_category_id) != 36:
             return Response(
                 {"error": "room_category_id must be a valid uuid"}, status=status.HTTP_404_NOT_FOUND
             )
