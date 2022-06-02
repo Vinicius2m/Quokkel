@@ -154,7 +154,7 @@ class RetrieveReservationsView(APIView):
         reservation = Reservation.objects.filter(reservation_id=reservation_id).first()
 
         if not reservation:
-            return Response(status=HTTP_404_NOT_FOUND)
+            return Response({"error": "Reservation not found"}, status=HTTP_404_NOT_FOUND)
 
         serializer = RetreiveReservationsSerializer(reservation)
 
