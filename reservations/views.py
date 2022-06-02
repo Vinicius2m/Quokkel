@@ -1,4 +1,3 @@
-from ast import Break
 from django.core.exceptions import BadRequest
 from django.db import IntegrityError
 from django.forms import ValidationError
