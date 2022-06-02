@@ -57,7 +57,7 @@ class ReservationsView(APIView):
                 reservation_out_date=serializer.validated_data["out_reservation_date"],
             )
 
-            # Filtar conflito por categoria de quarto
+            # Filtrar conflito por categoria de quarto
             conflicted_reservations = [
                 reservation
                 for reservation in conflicted_reservations
@@ -174,7 +174,7 @@ class UpdateReservationsView(APIView):
             reservation_id=reservation_id,
         )
 
-        # Filtar conflito por categoria de quarto
+        # Filtrar conflito por categoria de quarto
         conflicted_reservations = [
             reservation
             for reservation in conflicted_reservations
@@ -219,6 +219,25 @@ class CheckinReservationsView(APIView):
                 return Response(
                     {"error": "Reservation not found"}, status=HTTP_404_NOT_FOUND
                 )
+
+            checkin_date = reservation.first().checkin_date
+
+            if checkin_date:
+                return Response(
+                    {"error": "Checkin already exists"}, status=HTTP_409_CONFLICT
+                )
+
+            room_category_id = reservation.first().room_category.room_category_id
+
+            rooms = Room.objects.filter(room_category_id=room_category_id).all()
+            print(rooms)
+
+            room_id = [room.room_id for room in rooms if room.available == True][0]
+
+            Room.objects.filter(room_id=room_id).update(**{"available": False})
+
+            serializer.validated_data["room"] = room_id
+            serializer.validated_data["status"] = "occupied"
 
             reservation.update(**serializer.validated_data)
 
