@@ -248,7 +248,6 @@ class CheckinReservationsView(APIView):
             room_category_id = reservation.first().room_category.room_category_id
 
             rooms = Room.objects.filter(room_category_id=room_category_id).all()
-            print(rooms)
 
             room_id = [room.room_id for room in rooms if room.available == True][0]
 
