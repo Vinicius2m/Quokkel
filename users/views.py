@@ -44,6 +44,10 @@ class AdminView(APIView):
         return Response(serializer.data, status.HTTP_201_CREATED)
 
     def patch(self, request, admin_id):
+
+        if not request.data:
+            return Response({"error": "Data is required"}, status=status.HTTP_400_BAD_REQUEST)
+
         if admin_id != 36:
             return Response(
                 {"error": "admin_id must be a valid uuid"}, status=status.HTTP_404_NOT_FOUND
@@ -121,6 +125,10 @@ class GuestsView(APIView):
             return Response({"error": str(error)}, status.HTTP_409_CONFLICT)
 
     def patch(self, request, guest_id):
+
+        if not request.data:
+            return Response({"error": "Data is required"}, status=status.HTTP_400_BAD_REQUEST)
+
         if guest_id != 36:
             return Response(
                 {"error": "guest_id must be a valid uuid"}, status=status.HTTP_404_NOT_FOUND
