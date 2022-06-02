@@ -9,7 +9,7 @@ class ReservationsSerializer(serializers.Serializer):
     reservation_id = serializers.UUIDField(read_only=True)
     in_reservation_date = serializers.DateField(required=True)
     out_reservation_date = serializers.DateField(required=True)
-    status = serializers.CharField(required=True)
+    status = serializers.CharField(required=False)
     total_value = serializers.DecimalField(
         required=False, max_digits=10, decimal_places=2, coerce_to_string=False
     )
