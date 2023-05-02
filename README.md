@@ -1,6 +1,6 @@
 <h1>Quokkel</h1>
 
-📜 Grupo Quokka oferece hotelaria de uma jeito simples e eficaz!
+📜 Grupo Quokka oferece hotelaria de um jeito simples e eficaz!
 
 <div align="center">
     <img src="https://i.imgur.com/XLiIFDJ.png" alt="quokka-logo" border="0">
